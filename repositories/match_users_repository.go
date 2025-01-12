@@ -16,16 +16,21 @@ type SupabaseMatchUsersRepository struct {
 }
 
 func (r *SupabaseMatchUsersRepository) IsDealer(matchID string, playerID string) (bool, error) {
-	matchUser, _, err := r.DB.From("match_users").Select("*", "", false).Eq("match_id", matchID).Eq("user_id", playerID).ExecuteString()
-	fmt.Println(matchUser)
+	var matchUser []models.MatchUsers
+	
+	_, err := r.DB.
+		From("match_users").
+		Select("*", "", false).
+		ExecuteTo(&matchUser)
 
 	if err != nil {
 		return false, err
 	}
 
-	isDealer := matchUser == "true"
-
-	return isDealer, err
+	if matchUser[0].ID != "" {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (r *SupabaseMatchUsersRepository) GetAlivePlayers(matchID string) ([]models.MatchUsers, error) {

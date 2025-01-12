@@ -1,7 +1,6 @@
 package services
 
 import (
-	"4dinha-backend/models"
 	"errors"
 	"github.com/golang-jwt/jwt/v4"
 	"strings"
@@ -15,37 +14,32 @@ func NewAuthService(supabaseAnonKey string) *AuthService {
 	return &AuthService{SupabaseAnonKey: supabaseAnonKey}
 }
 
-func (s *AuthService) ValidateToken(authHeader string) (*models.User, error) {
-	// Verifica se o cabeçalho está presente
+func (s *AuthService) ValidateToken(authHeader string) (string, error) {
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		return nil, errors.New("invalid authorization header format")
+		return "", errors.New("invalid authorization header format")
 	}
 
 	tokenString := tokenParts[1]
 
-	// Analisa e valida o token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Verifica o método de assinatura
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, errors.New("unexpected signing method")
 		}
-		// Retorna a chave secreta
+
 		return []byte(s.SupabaseAnonKey), nil
 	})
 
 	if err != nil || !token.Valid {
-		return nil, errors.New("invalid token")
+		return "", errors.New("invalid token")
 	}
 
-	// Extrai as claims e retorna os dados do usuário
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		user := &models.User{
-			ID:    claims["sub"].(string),
-			Email: claims["email"].(string),
+		if sub, ok := claims["sub"].(string); ok {
+			return sub, nil
 		}
-		return user, nil
+		return "", errors.New("missing sub claim in token")
 	}
 
-	return nil, errors.New("invalid token claims")
+	return "", errors.New("invalid token claims")
 }

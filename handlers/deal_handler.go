@@ -17,6 +17,12 @@ func NewDealHandler(dealService *services.DealService) *DealHandler {
 }
 
 func (h *DealHandler) DealCards(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found"})
+		return
+	}
+
 	var body struct {
 		MatchID string `json:"matchId" binding:"required"`
 	}
@@ -26,7 +32,7 @@ func (h *DealHandler) DealCards(c *gin.Context) {
 		return
 	}
 
-	err := h.DealService.DealCards(c.GetHeader("Authorization"), body.MatchID)
+	err := h.DealService.DealCards(userID.(string), body.MatchID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -23,15 +23,13 @@ func (m *AuthMiddleware) HandleAuth(c *gin.Context) {
 		return
 	}
 
-	// Valida o token usando o serviço
-	user, err := m.AuthService.ValidateToken(authHeader)
+	userId, err := m.AuthService.ValidateToken(authHeader)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 
-	// Adiciona os dados do usuário ao contexto
-	c.Set("user", user)
+	c.Set("userID", userId)
 	c.Next()
 }

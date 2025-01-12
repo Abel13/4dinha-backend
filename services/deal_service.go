@@ -19,9 +19,9 @@ func NewDealService(matchRepo repositories.MatchRepository, matchUserRepo reposi
 	}
 }
 
-func (s *DealService) DealCards(token string, matchID string) error {
-	// Verifique se o usuário é o dealer
-	isDealer, err := s.MatchUserRepo.IsDealer(token, matchID)
+func (s *DealService) DealCards(userID, matchID string) error {
+
+	isDealer, err := s.MatchUserRepo.IsDealer(matchID, userID)
 	if err != nil || !isDealer {
 		return errors.New("user is not the dealer")
 	}
