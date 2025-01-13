@@ -6,37 +6,34 @@ import (
 	"github.com/supabase-community/supabase-go"
 )
 
-type MatchUsersRepository interface {
-	IsDealer(matchID, playerID string) (bool, error)
-	GetAlivePlayers(matchID string) ([]models.MatchUsers, error)
+type MatchUsersRepository struct{}
+
+func NewMatchUsersRepository() *MatchUsersRepository {
+	return &MatchUsersRepository{}
 }
 
-type SupabaseMatchUsersRepository struct {
-	DB *supabase.Client
-}
+func (r *MatchUsersRepository) IsDealer(client *supabase.Client, matchID string, playerID string) (bool, error) {
+	var matchUser models.MatchUsers
 
-func (r *SupabaseMatchUsersRepository) IsDealer(matchID string, playerID string) (bool, error) {
-	var matchUser []models.MatchUsers
-	
-	_, err := r.DB.
+	_, err := client.
 		From("match_users").
 		Select("*", "", false).
+		Eq("match_id", matchID).
+		Eq("user_id", playerID).
+		Single().
 		ExecuteTo(&matchUser)
 
 	if err != nil {
 		return false, err
 	}
 
-	if matchUser[0].ID != "" {
-		return true, nil
-	}
-	return false, nil
+	return matchUser.Dealer, nil
 }
 
-func (r *SupabaseMatchUsersRepository) GetAlivePlayers(matchID string) ([]models.MatchUsers, error) {
+func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID string) ([]models.MatchUsers, error) {
 	var alivePlayers []models.MatchUsers
 
-	matchUsers, _, err := r.DB.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteString()
+	matchUsers, _, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteString()
 	fmt.Println(matchUsers)
 
 	return alivePlayers, err

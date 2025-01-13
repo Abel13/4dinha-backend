@@ -6,18 +6,16 @@ import (
 	"github.com/supabase-community/supabase-go"
 )
 
-type MatchRepository interface {
-	GetMatch() ([]models.Matches, error)
+type MatchRepository struct{}
+
+func NewMatchRepository() *MatchRepository {
+	return &MatchRepository{}
 }
 
-type SupabaseMatchRepository struct {
-	DB *supabase.Client
-}
-
-func (r *SupabaseMatchRepository) GetMatch() ([]models.Matches, error) {
+func (r *MatchRepository) GetMatch(client *supabase.Client, matchID string) ([]models.Matches, error) {
 	var matchList []models.Matches
 
-	matches, _, err := r.DB.From("matches").Select("*", "", false).Execute()
+	matches, _, err := client.From("matches").Select("*", "", false).Eq("id", matchID).Execute()
 
 	fmt.Println(matches)
 	return matchList, err

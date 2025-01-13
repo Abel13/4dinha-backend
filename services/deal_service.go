@@ -3,6 +3,7 @@ package services
 import (
 	"4dinha-backend/repositories"
 	"errors"
+	"github.com/supabase-community/supabase-go"
 )
 
 type DealService struct {
@@ -19,27 +20,12 @@ func NewDealService(matchRepo repositories.MatchRepository, matchUserRepo reposi
 	}
 }
 
-func (s *DealService) DealCards(userID, matchID string) error {
+func (s *DealService) DealCards(client *supabase.Client, userID, matchID string) error {
 
-	isDealer, err := s.MatchUserRepo.IsDealer(matchID, userID)
+	isDealer, err := s.MatchUserRepo.IsDealer(client, matchID, userID)
 	if err != nil || !isDealer {
 		return errors.New("user is not the dealer")
 	}
-
-	// Busque todos os jogadores vivos
-	//players, err := s.MatchUserRepo.GetAlivePlayers(matchID)
-	//if err != nil {
-	//	return err
-	//}
-
-	// Busque todas as cartas
-	//cards, err := s.DeckRepo.GetAllCards()
-	//if err != nil {
-	//	return err
-	//}
-
-	// Distribua as cartas e insira em player_cards
-	// (lógica completa de distribuição omitida por brevidade)
 
 	return nil
 }

@@ -5,14 +5,12 @@ import (
 	"4dinha-backend/middleware"
 	"4dinha-backend/repositories"
 	"4dinha-backend/services"
-	"4dinha-backend/utils"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
-
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,25 +18,29 @@ func main() {
 	if err != nil {
 		log.Fatalf("Erro ao carregar .env: %v", err)
 	}
-	utils.InitSupabase()
-	db := utils.GetSupabase()
 
 	jwtSecret := os.Getenv("JWT_SECRET")
+	supabaseURL := os.Getenv("SUPABASE_URL")
+	supabaseKey := os.Getenv("SUPABASE_ANON_KEY")
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3333"
 	}
 
-	matchRepo := &repositories.SupabaseMatchRepository{DB: db}
-	matchUserRepo := &repositories.SupabaseMatchUsersRepository{DB: db}
-	deckRepo := &repositories.SupabaseDeckRepository{DB: db}
+	if jwtSecret == "" || supabaseURL == "" || supabaseKey == "" {
+		log.Fatal("Configuração de ambiente inválida: verifique JWT_SECRET, SUPABASE_URL e SUPABASE_ANON_KEY")
+	}
 
 	authService := services.NewAuthService(jwtSecret)
-	dealService := services.NewDealService(matchRepo, matchUserRepo, deckRepo)
+	middlewareAuth := middleware.NewAuthMiddleware(authService, supabaseURL, supabaseKey)
+
+	matchRepo := repositories.NewMatchRepository()
+	matchUserRepo := repositories.NewMatchUsersRepository()
+	deckRepo := repositories.NewDeckRepository()
+
+	dealService := services.NewDealService(*matchRepo, *matchUserRepo, *deckRepo)
 
 	dealHandler := handlers.NewDealHandler(dealService)
-
-	authMiddleware := middleware.NewAuthMiddleware(authService)
 
 	router := gin.Default()
 
@@ -47,10 +49,11 @@ func main() {
 	})
 
 	protected := router.Group("/api")
-	protected.Use(authMiddleware.HandleAuth)
+	protected.Use(middlewareAuth.HandleAuth)
 	{
 		protected.POST("/deal", dealHandler.DealCards)
 	}
 
+	log.Printf("Servidor rodando na porta %s", port)
 	router.Run(":" + port)
 }

@@ -5,14 +5,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/supabase-community/supabase-go"
 )
 
 type AuthMiddleware struct {
-	AuthService *services.AuthService
+	authService *services.AuthService
+	supabaseURL string
+	supabaseKey string
 }
 
-func NewAuthMiddleware(authService *services.AuthService) *AuthMiddleware {
-	return &AuthMiddleware{AuthService: authService}
+func NewAuthMiddleware(authService *services.AuthService, supabaseURL, supabaseKey string) *AuthMiddleware {
+	return &AuthMiddleware{
+		authService: authService,
+		supabaseURL: supabaseURL,
+		supabaseKey: supabaseKey,
+	}
 }
 
 func (m *AuthMiddleware) HandleAuth(c *gin.Context) {
@@ -23,13 +30,26 @@ func (m *AuthMiddleware) HandleAuth(c *gin.Context) {
 		return
 	}
 
-	userId, err := m.AuthService.ValidateToken(authHeader)
+	user, err := m.authService.ValidateToken(authHeader)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		c.Abort()
 		return
 	}
 
-	c.Set("userID", userId)
+	client, err := supabase.NewClient(m.supabaseURL, m.supabaseKey, &supabase.ClientOptions{
+		Headers: map[string]string{
+			"Authorization": authHeader,
+		},
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize Supabase client"})
+		c.Abort()
+		return
+	}
+
+	c.Set("supabaseClient", client)
+	c.Set("userID", user)
+
 	c.Next()
 }

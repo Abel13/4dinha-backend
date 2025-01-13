@@ -6,18 +6,16 @@ import (
 	"github.com/supabase-community/supabase-go"
 )
 
-type DeckRepository interface {
-	GetAllCards() ([]models.Deck, error)
+type DeckRepository struct{}
+
+func NewDeckRepository() *DeckRepository {
+	return &DeckRepository{}
 }
 
-type SupabaseDeckRepository struct {
-	DB *supabase.Client
-}
-
-func (r *SupabaseDeckRepository) GetAllCards() ([]models.Deck, error) {
+func (r *DeckRepository) GetAllCards(client supabase.Client) ([]models.Deck, error) {
 	var cards []models.Deck
 
-	deck, _, err := r.DB.From("deck").Select("*", "", false).Execute()
+	deck, _, err := client.From("deck").Select("*", "", false).Execute()
 	fmt.Println(deck)
 
 	if err != nil {
