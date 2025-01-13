@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"4dinha-backend/models"
-	"fmt"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -12,11 +11,15 @@ func NewMatchRepository() *MatchRepository {
 	return &MatchRepository{}
 }
 
-func (r *MatchRepository) GetMatch(client *supabase.Client, matchID string) ([]models.Matches, error) {
-	var matchList []models.Matches
+func (r *MatchRepository) GetMatch(client *supabase.Client, matchID string) (models.Matches, error) {
+	var match models.Matches
 
-	matches, _, err := client.From("matches").Select("*", "", false).Eq("id", matchID).Execute()
+	_, err := client.
+		From("matches").
+		Select("*", "", false).
+		Eq("id", matchID).
+		Single().
+		ExecuteTo(&match)
 
-	fmt.Println(matches)
-	return matchList, err
+	return match, err
 }

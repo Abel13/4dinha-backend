@@ -12,11 +12,10 @@ func NewDeckRepository() *DeckRepository {
 	return &DeckRepository{}
 }
 
-func (r *DeckRepository) GetAllCards(client supabase.Client) ([]models.Deck, error) {
+func (r *DeckRepository) GetAllCards(client *supabase.Client) ([]models.Deck, error) {
 	var cards []models.Deck
 
-	deck, _, err := client.From("deck").Select("*", "", false).Execute()
-	fmt.Println(deck)
+	_, err := client.From("deck").Select("*", "", false).ExecuteTo(&cards)
 
 	if err != nil {
 		return nil, fmt.Errorf("erro ao buscar cartas: %w", err)

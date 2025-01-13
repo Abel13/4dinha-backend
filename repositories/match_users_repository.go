@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"4dinha-backend/models"
-	"fmt"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -33,8 +32,7 @@ func (r *MatchUsersRepository) IsDealer(client *supabase.Client, matchID string,
 func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID string) ([]models.MatchUsers, error) {
 	var alivePlayers []models.MatchUsers
 
-	matchUsers, _, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteString()
-	fmt.Println(matchUsers)
+	_, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteTo(&alivePlayers)
 
 	return alivePlayers, err
 }

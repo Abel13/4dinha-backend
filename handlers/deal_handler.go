@@ -47,7 +47,7 @@ func (h *DealHandler) DealCards(c *gin.Context) {
 
 	err := h.DealService.DealCards(supabaseClient, userID.(string), body.MatchID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
