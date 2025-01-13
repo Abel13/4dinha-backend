@@ -1,23 +1,21 @@
 package handlers
 
 import (
+	"4dinha-backend/services"
+	"github.com/gin-gonic/gin"
 	"github.com/supabase-community/supabase-go"
 	"net/http"
-
-	"4dinha-backend/services"
-
-	"github.com/gin-gonic/gin"
 )
 
-type DealHandler struct {
-	DealService *services.DealService
+type RoundHandler struct {
+	RoundService *services.RoundService
 }
 
-func NewDealHandler(dealService *services.DealService) *DealHandler {
-	return &DealHandler{DealService: dealService}
+func NewRoundHandler(roundService *services.RoundService) *RoundHandler {
+	return &RoundHandler{RoundService: roundService}
 }
 
-func (h *DealHandler) DealCards(c *gin.Context) {
+func (h *RoundHandler) FinishRound(c *gin.Context) {
 	var body struct {
 		MatchID string `json:"matchId" binding:"required"`
 	}
@@ -31,11 +29,6 @@ func (h *DealHandler) DealCards(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Supabase client not found in context"})
 		return
 	}
-	supabaseClient, ok := client.(*supabase.Client)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid Supabase client"})
-		return
-	}
 
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -43,11 +36,17 @@ func (h *DealHandler) DealCards(c *gin.Context) {
 		return
 	}
 
-	err := h.DealService.DealCards(supabaseClient, userID.(string), body.MatchID)
+	supabaseClient, ok := client.(*supabase.Client)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid Supabase client"})
+		return
+	}
+
+	err := h.RoundService.FinishRound(supabaseClient, body.MatchID, userID.(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Cards dealt successfully"})
+	c.JSON(http.StatusOK, gin.H{"status": "Success"})
 }

@@ -12,8 +12,8 @@ func Shuffle(cards []models.Deck) []models.Deck {
 	return cards
 }
 
-func RemoveCards(cards []models.Deck, symbolsToRemove []string) []models.Deck {
-	toRemove := make(map[string]bool)
+func RemoveCards(cards []models.Deck, symbolsToRemove []models.CardSymbol) []models.Deck {
+	toRemove := make(map[models.CardSymbol]bool)
 	for _, symbol := range symbolsToRemove {
 		toRemove[symbol] = true
 	}
@@ -45,8 +45,8 @@ func DistributeCards(
 	roundNumber int,
 	shuffledCards *[]models.Deck,
 	cardsPerPlayer int,
-) []map[string]interface{} {
-	var distributedCards []map[string]interface{}
+) []models.PlayerCardsInput {
+	var distributedCards []models.PlayerCardsInput
 
 	for i := 0; i < cardsPerPlayer; i++ {
 		for _, player := range players {
@@ -57,10 +57,12 @@ func DistributeCards(
 			cardID := (*shuffledCards)[0].ID
 			*shuffledCards = (*shuffledCards)[1:]
 
-			card := map[string]interface{}{
-				"match_user":   player.ID,
-				"round_number": roundNumber,
-				"card_id":      cardID,
+			card := models.PlayerCardsInput{
+				CardID:      cardID,
+				UserID:      player.UserID,
+				MatchID:     player.MatchID,
+				RoundNumber: roundNumber,
+				Status:      models.StatusOnHand,
 			}
 
 			distributedCards = append(distributedCards, card)

@@ -1,124 +1,205 @@
 package models
 
-// User representa o User do JWT
-type User struct {
-	Email string `json:"email"`
-	ID    string `json:"id"`
-}
-
-// Deck representa a tabela `deck`
+// Tables
 type Deck struct {
-	ID        string `json:"id"`
-	Power     int    `json:"power"`
-	Suit      string `json:"suit"` // card_suit enum
-	SuitPower int    `json:"suit_power"`
-	Symbol    string `json:"symbol"` // card_symbol enum
+	ID        string     `json:"id"`
+	Power     int        `json:"power"`
+	Suit      CardSuit   `json:"suit"`
+	SuitPower int        `json:"suit_power"`
+	Symbol    CardSymbol `json:"symbol"`
 }
 
-// MatchActions representa a tabela `match_actions`
 type MatchActions struct {
-	Action      string `json:"action"` // actions enum
-	CreatedAt   string `json:"created_at"`
-	ID          int    `json:"id"`
+	ID          string  `json:"id"`
+	Action      Actions `json:"action"`
+	MatchID     string  `json:"match_id"`
+	RoundNumber int     `json:"round_number"`
+	UserID      string  `json:"user_id"`
+	CreatedAt   string  `json:"created_at"`
+}
+
+type MatchActionsInput struct {
+	Action      Actions `json:"action"`
+	MatchID     string  `json:"match_id"`
+	RoundNumber int     `json:"round_number"`
+}
+
+type MatchUsers struct {
+	CreatedAt *string `json:"created_at"`
+	Dealer    bool    `json:"dealer"`
+	ID        string  `json:"id"`
+	Lives     int     `json:"lives"`
+	MatchID   string  `json:"match_id"`
+	Ready     bool    `json:"ready"`
+	TableSeat *int    `json:"table_seat"`
+	UserID    string  `json:"user_id"`
+}
+
+type Matches struct {
+	CreatedAt   *string      `json:"created_at"`
+	ID          string       `json:"id"`
+	Name        string       `json:"name"`
+	RoundNumber int          `json:"round_number"`
+	Status      *MatchStatus `json:"status"`
+	UserID      string       `json:"user_id"`
+}
+
+type PlayerCards struct {
+	ID          string     `json:"id"`
+	CardID      string     `json:"card_id"`
+	CreatedAt   string     `json:"created_at"`
+	MatchID     string     `json:"match_id"`
+	RoundNumber int        `json:"round_number"`
+	Status      HandStatus `json:"status"`
+	UserID      string     `json:"user_id"`
+	Turn        *int       `json:"turn"`
+}
+
+type PlayerCardsInput struct {
+	CardID      string     `json:"card_id"`
+	MatchID     string     `json:"match_id"`
+	RoundNumber int        `json:"round_number"`
+	Status      HandStatus `json:"status"`
+	UserID      string     `json:"user_id"`
+	Turn        *int       `json:"turn"`
+}
+
+type PlayerCardsUpdate struct {
+	Status HandStatus `json:"status"`
+	Turn   *int       `json:"turn"`
+}
+
+type Rounds struct {
+	MatchID     string      `json:"match_id"`
+	RoundNumber int         `json:"round_number"`
+	Status      RoundStatus `json:"status"`
+	Trump       string      `json:"trump"`
+}
+
+type Bets struct {
+	Bet         int     `json:"bet"`
+	MatchID     string  `json:"match_id"`
+	RoundNumber int     `json:"round_number"`
+	UserID      string  `json:"user_id"`
+	CreatedAt   *string `json:"created_at"`
+}
+
+type BetsInput struct {
+	Bet         int    `json:"bet"`
 	MatchID     string `json:"match_id"`
 	RoundNumber int    `json:"round_number"`
 }
 
-// MatchUsers representa a tabela `match_users`
-type MatchUsers struct {
-	CreatedAt string `json:"created_at"`
-	Dealer    bool   `json:"dealer"`
-	ID        string `json:"id"`
-	Lives     int    `json:"lives"`
-	MatchID   string `json:"match_id"`
-	Ready     bool   `json:"ready"`
-	TableSit  *int   `json:"table_sit"`
-	UserID    string `json:"user_id"`
-}
-
-// Matches representa a tabela `matches`
-type Matches struct {
-	CreatedAt   *string `json:"created_at"`
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	RoundNumber int     `json:"round_number"`
-	Status      *string `json:"status"` // match_status enum
-	UserID      string  `json:"user_id"`
-}
-
-// PlayerCards representa a tabela `player_cards`
-type PlayerCards struct {
-	CardID      *string `json:"card_id"`
-	CreatedAt   string  `json:"created_at"`
-	MatchUser   string  `json:"match_user"`
-	RoundNumber int     `json:"round_number"`
-}
-
-// RoundOne representa a tabela `round_one`
-type RoundOne struct {
-	CreatedAt   string `json:"created_at"`
-	ID          int    `json:"id"`
-	RoundNumber int    `json:"round_number"`
-	Status      string `json:"status"` // round_status enum
-}
-
 // Enums
+type Actions string
+
 const (
-	// Actions enum
-	ActionDeal = "deal"
-
-	// CardSuit enum
-	CardSuitClubs    = "♣️"
-	CardSuitHearts   = "♥️"
-	CardSuitSpades   = "♠️"
-	CardSuitDiamonds = "♦️"
-
-	// CardSymbol enum
-	CardSymbolA  = "A"
-	CardSymbol2  = "2"
-	CardSymbol3  = "3"
-	CardSymbol4  = "4"
-	CardSymbol5  = "5"
-	CardSymbol6  = "6"
-	CardSymbol7  = "7"
-	CardSymbol8  = "8"
-	CardSymbol9  = "9"
-	CardSymbol10 = "10"
-	CardSymbolQ  = "Q"
-	CardSymbolJ  = "J"
-	CardSymbolK  = "K"
-
-	// MatchStatus enum
-	MatchStatusCreated  = "created"
-	MatchStatusStarted  = "started"
-	MatchStatusFinished = "finished"
-
-	// RoundStatus enum
-	RoundStatusDealing  = "dealing"
-	RoundStatusBetting  = "betting"
-	RoundStatusPlaying  = "playing"
-	RoundStatusFinished = "finished"
+	ActionDeal         Actions = "deal"
+	ActionBet          Actions = "bet"
+	ActionChangeStatus Actions = "change_status"
+	ActionPlay         Actions = "play"
+	ActionRoundStart   Actions = "round_start"
 )
 
-// Functions
+type CardSuit string
 
-// GetUserEmailArgs representa os argumentos da função `get_user_email`
+const (
+	SuitClubs    CardSuit = "♣️"
+	SuitHearts   CardSuit = "♥️"
+	SuitSpades   CardSuit = "♠️"
+	SuitDiamonds CardSuit = "♦️"
+)
+
+type CardSymbol string
+
+const (
+	SymbolA  CardSymbol = "A"
+	Symbol2  CardSymbol = "2"
+	Symbol3  CardSymbol = "3"
+	Symbol4  CardSymbol = "4"
+	Symbol5  CardSymbol = "5"
+	Symbol6  CardSymbol = "6"
+	Symbol7  CardSymbol = "7"
+	Symbol8  CardSymbol = "8"
+	Symbol9  CardSymbol = "9"
+	Symbol10 CardSymbol = "10"
+	SymbolQ  CardSymbol = "Q"
+	SymbolJ  CardSymbol = "J"
+	SymbolK  CardSymbol = "K"
+)
+
+type HandStatus string
+
+const (
+	StatusOnHand HandStatus = "on hand"
+	StatusPlayed HandStatus = "played"
+)
+
+type MatchStatus string
+
+const (
+	StatusCreated MatchStatus = "created"
+	StatusStarted MatchStatus = "started"
+	StatusEnd     MatchStatus = "end"
+)
+
+type RoundStatus string
+
+const (
+	StatusDealing  RoundStatus = "dealing"
+	StatusBetting  RoundStatus = "betting"
+	StatusPlaying  RoundStatus = "playing"
+	StatusFinished RoundStatus = "finished"
+)
+
+// Stored Procedures and Functions
 type GetUserEmailArgs struct {
 	UserID string `json:"user_id"`
 }
 
-// GetUserEmailReturns representa os retornos da função `get_user_email`
-type GetUserEmailReturns struct {
+type GetUserEmailResult struct {
 	Email string `json:"email"`
 }
 
-// UpdateMatchStatusToStartedArgs representa os argumentos da função `update_match_status_to_started`
 type UpdateMatchStatusToStartedArgs struct {
 	MatchID string `json:"_match_id"`
 }
 
-// UpdateReadyStatusArgs representa os argumentos da função `update_ready_status`
 type UpdateReadyStatusArgs struct {
 	MatchID string `json:"_match_id"`
 	IsReady bool   `json:"_is_ready"`
+}
+
+type UpdateDealerArgs struct {
+	MatchID   string `json:"_match_id"`
+	TableSeat int    `json:"_table_seat"`
+}
+
+type UpdatePlayerLivesArgs struct {
+	MatchID  string `json:"_match_id"`
+	UserID   string `json:"_user_id"`
+	NewLives int    `json:"_new_lives"`
+}
+
+type UpdatePlayerLivesResult struct {
+}
+
+type UpdateRoundNumberArgs struct {
+	MatchID        string `json:"_match_id"`         // ID do match a ser atualizado
+	NewRoundNumber int    `json:"_new_round_number"` // Novo número da rodada
+}
+
+type GetPlayerCardsArgs struct {
+	MatchID     string `json:"_match_id"`
+	UserID      string `json:"_user_id"`
+	RoundNumber int    `json:"_round_number"`
+}
+
+type GetPlayerCardsResult struct {
+	ID     string     `json:"id"`
+	UserID string     `json:"user_id"`
+	Symbol CardSymbol `json:"symbol"`
+	Suit   CardSuit   `json:"suit"`
+	Status HandStatus `json:"status"`
+	Turn   int        `json:"turn"`
 }
