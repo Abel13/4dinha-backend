@@ -18,6 +18,7 @@ func (r *MatchRepository) GetMatch(client *supabase.Client, matchID string) (mod
 		From("matches").
 		Select("*", "", false).
 		Eq("id", matchID).
+		Eq("status", string(models.StatusStarted)).
 		Single().
 		ExecuteTo(&match)
 

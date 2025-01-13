@@ -18,7 +18,7 @@ func (r *DeckRepository) GetAllCards(client *supabase.Client) ([]models.Deck, er
 	_, err := client.From("deck").Select("*", "", false).ExecuteTo(&cards)
 
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar cartas: %w", err)
+		return nil, fmt.Errorf("error to get cards: %w", err)
 	}
 
 	return cards, nil

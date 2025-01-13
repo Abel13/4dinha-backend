@@ -37,8 +37,10 @@ func main() {
 	matchRepo := repositories.NewMatchRepository()
 	matchUserRepo := repositories.NewMatchUsersRepository()
 	deckRepo := repositories.NewDeckRepository()
+	playerCardRepo := repositories.NewPlayerCardsRepository()
+	roundRepo := repositories.NewRoundRepo()
 
-	dealService := services.NewDealService(*matchRepo, *matchUserRepo, *deckRepo)
+	dealService := services.NewDealService(*matchRepo, *matchUserRepo, *deckRepo, *playerCardRepo, *roundRepo)
 
 	dealHandler := handlers.NewDealHandler(dealService)
 
