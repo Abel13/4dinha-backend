@@ -6,3 +6,8 @@ type PlayerResult struct {
 	Bets     int    `json:"bets"`
 	Wins     int    `json:"wins"`
 }
+
+type RoundResult struct {
+	PlayersResult []PlayerResult
+	LastWinnerID  string
+}

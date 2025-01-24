@@ -50,8 +50,8 @@ func NewUpdateService(
 	}
 }
 
-func FindMatchUserByUserID(matchUsers []models.MatchUsers, userID string) (models.MatchUsers, bool) {
-	for _, user := range matchUsers {
+func FindMatchUserByUserID(alivePlayers []models.MatchUsers, userID string) (models.MatchUsers, bool) {
+	for _, user := range alivePlayers {
 		if user.UserID == userID {
 			return user, true
 		}
@@ -66,8 +66,10 @@ func GetResult(
 	trumpPower int,
 	deck []models.Deck,
 	players []models.MatchUsers,
-	bets []models.Bets) []models.PlayerResult {
+	bets []models.Bets) models.RoundResult {
+
 	playersResults := make(map[string]*models.PlayerResult)
+	lastWinnerID := ""
 
 	for _, player := range players {
 		playersResults[player.UserID] = &models.PlayerResult{
@@ -89,14 +91,24 @@ func GetResult(
 		var playedCards []models.Deck
 
 		for _, playedCard := range allPlayerCards {
-			if playedCard.Turn == turn {
-				for _, card := range deck {
-					if card.Symbol == playedCard.Symbol && card.Suit == playedCard.Suit {
-						playedCards = append(playedCards, card)
-						break
+			if playedCard.Status == models.StatusPlayed || playedCard.Status == models.StatusOnTable {
+				if playedCard.Turn == turn {
+					for _, card := range deck {
+						if card.Symbol == playedCard.Symbol && card.Suit == playedCard.Suit {
+							playedCards = append(playedCards, card)
+							break
+						}
 					}
 				}
 			}
+		}
+
+		turnCardsCount := len(playedCards)
+		if turnCardsCount != len(players) {
+			if turnCardsCount > 0 {
+				lastWinnerID = ""
+			}
+			break
 		}
 
 		for i := range playedCards {
@@ -114,10 +126,13 @@ func GetResult(
 		}
 
 		for _, playedCard := range allPlayerCards {
-			if playedCard.Symbol == winningCard.Symbol && playedCard.Suit == winningCard.Suit {
-				if result, exists := playersResults[playedCard.UserID]; exists {
-					result.Wins++
-					break
+			if (playedCard.Status == models.StatusPlayed || playedCard.Status == models.StatusOnTable) && playedCard.Turn == turn {
+				if playedCard.Symbol == winningCard.Symbol && playedCard.Suit == winningCard.Suit {
+					if result, exists := playersResults[playedCard.UserID]; exists {
+						lastWinnerID = playedCard.UserID
+						result.Wins++
+						break
+					}
 				}
 			}
 		}
@@ -128,7 +143,10 @@ func GetResult(
 		results = append(results, *result)
 	}
 
-	return results
+	return models.RoundResult{
+		PlayersResult: results,
+		LastWinnerID:  lastWinnerID,
+	}
 }
 
 func FindNextAlivePlayer(matchUsers []models.MatchUsers, lastPlayerID string) (models.MatchUsers, bool) {
@@ -166,7 +184,7 @@ func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string
 	var gamePlayers []models.GamePlayer
 	var gameUpdate GameUpdate
 	var currentPlayerID string
-	var results []models.PlayerResult
+	var results models.RoundResult
 
 	match, err := s.MatchRepo.GetMatch(client, matchID)
 	if err != nil {
@@ -174,7 +192,9 @@ func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string
 	}
 	stringRoundNumber := strconv.Itoa(match.RoundNumber)
 
-	matchUsers, err := s.MatchUserRepo.GetAlivePlayers(client, matchID)
+	matchUsers, err := s.MatchUserRepo.GetMatchUsers(client, matchID)
+
+	alivePlayers, err := s.MatchUserRepo.GetAlivePlayers(client, matchID)
 	if err != nil {
 		return gameUpdate, fmt.Errorf("erro ao buscar jogadores: %v", err)
 	}
@@ -197,37 +217,33 @@ func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string
 		}
 
 		gameUpdate.Round = gameRound
+		trumpIndicator := s.DeckRepo.GetCard(client, round.Trump)
+		trumpPower := GetTrumpPower(trumpIndicator)
+		deck := s.DeckRepo.GetAllCards(client)
 
 		if gameRound.Status == models.StatusFinished {
-			trumpIndicator := s.DeckRepo.GetCard(client, round.Trump)
-			deck := s.DeckRepo.GetAllCards(client)
-			results = GetResult(utils.CalculateGroup(match.RoundNumber), playerCards, (trumpIndicator.Power%13)+1, deck, matchUsers, gameBets)
+			results = GetResult(utils.CalculateGroup(match.RoundNumber), playerCards, trumpPower, deck, alivePlayers, gameBets)
 		} else {
+			results = GetResult(utils.CalculateGroup(match.RoundNumber), playerCards, trumpPower, deck, alivePlayers, gameBets)
+
 			lastAction, err := s.ActionRepo.GetLastAction(client, matchID)
 			if err != nil {
 				return gameUpdate, fmt.Errorf("erro ao buscar ultima acao: %v", err)
 			}
 
-			lastPlayer, found := FindMatchUserByUserID(matchUsers, lastAction.UserID)
-			nextPlayer, found := FindNextAlivePlayer(matchUsers, lastPlayer.UserID)
-
-			if found {
-				currentPlayerID = nextPlayer.UserID
+			if results.LastWinnerID == "" {
+				lastPlayer, found := FindMatchUserByUserID(alivePlayers, lastAction.UserID)
+				nextPlayer, found := FindNextAlivePlayer(matchUsers, lastPlayer.UserID)
+				if found {
+					currentPlayerID = nextPlayer.UserID
+				}
+			} else {
+				currentPlayerID = results.LastWinnerID
 			}
-			//if found {
-			//	nextSeat := (*lastPlayer.TableSeat % len(matchUsers)) + 1
-			//	nextSeatString := strconv.Itoa(nextSeat)
-			//	nextPlayer, err := s.MatchUserRepo.GetPlayerBySeat(client, matchID, nextSeatString)
-			//	if err != nil {
-			//		return gameUpdate, fmt.Errorf("erro ao buscar proximo jogador: %v", err)
-			//	}
-			//
-			//	currentPlayerID = nextPlayer.UserID
-			//}
 		}
 	}
 
-	for _, matchUser := range matchUsers {
+	for _, matchUser := range alivePlayers {
 		gamePlayer := models.GamePlayer{
 			ID:        matchUser.ID,
 			UserID:    matchUser.UserID,
@@ -244,7 +260,7 @@ func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string
 	gameUpdate.Players = gamePlayers
 	gameUpdate.PlayerCards = playerCards
 	gameUpdate.Bets = gameBets
-	gameUpdate.Results = results
+	gameUpdate.Results = results.PlayersResult
 
 	return gameUpdate, nil
 }

@@ -54,6 +54,14 @@ func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID 
 	return alivePlayers, err
 }
 
+func (r *MatchUsersRepository) GetMatchUsers(client *supabase.Client, matchID string) ([]models.MatchUsers, error) {
+	var matchUsers []models.MatchUsers
+
+	_, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteTo(&matchUsers)
+
+	return matchUsers, err
+}
+
 func (r *MatchUsersRepository) GetPlayerBySeat(client *supabase.Client, matchID, seat string) (models.MatchUsers, error) {
 	var playerSeat models.MatchUsers
 

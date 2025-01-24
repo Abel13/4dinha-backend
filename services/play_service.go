@@ -26,7 +26,7 @@ func (s *PlayService) Play(client *supabase.Client, playerCardID string) error {
 		return err
 	}
 
-	if playerCard.Status == models.StatusPlayed {
+	if playerCard.Status != models.StatusOnHand {
 		return errors.New("card already played")
 	}
 

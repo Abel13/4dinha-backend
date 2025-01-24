@@ -131,8 +131,9 @@ const (
 type HandStatus string
 
 const (
-	StatusOnHand HandStatus = "on hand"
-	StatusPlayed HandStatus = "played"
+	StatusOnHand  HandStatus = "on hand"
+	StatusOnTable HandStatus = "on table"
+	StatusPlayed  HandStatus = "played"
 )
 
 type MatchStatus string

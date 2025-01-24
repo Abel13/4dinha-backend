@@ -4,7 +4,6 @@ import (
 	"4dinha-backend/models"
 	"fmt"
 	"github.com/supabase-community/supabase-go"
-	"strconv"
 )
 
 type RoundRepository struct {
@@ -59,9 +58,8 @@ func (r *RoundRepository) CurrentRound(client *supabase.Client, roundNumber stri
 	return round, nil
 }
 
-func (r *RoundRepository) GetTrumpsByDesignator(client *supabase.Client, trumpDesignator models.Deck) ([]models.Deck, error) {
+func (r *RoundRepository) GetTrumpsByPower(client *supabase.Client, trumpPower string) ([]models.Deck, error) {
 	var trumps []models.Deck
-	trumpPower := strconv.Itoa((trumpDesignator.Power % 13) + 1)
 
 	_, err := client.
 		From("deck").

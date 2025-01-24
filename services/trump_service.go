@@ -26,6 +26,21 @@ func NewTrumpService(
 	}
 }
 
+func GetTrumpPower(trumpDesignator models.Deck) int {
+	var trumpPower int
+
+	// REMOVE 8s e 9s
+	for trumpPower == 0 || (trumpPower >= 5 && trumpPower <= 7) {
+		if trumpPower == 0 {
+			trumpPower = trumpDesignator.Power
+		}
+
+		trumpPower = (trumpPower % 13) + 1
+	}
+
+	return trumpPower
+}
+
 func (s *TrumpService) GetTrumps(client *supabase.Client, matchID string) ([]models.Deck, error) {
 	match, err := s.MatchRepo.GetMatch(client, matchID)
 	if err != nil {
@@ -38,7 +53,8 @@ func (s *TrumpService) GetTrumps(client *supabase.Client, matchID string) ([]mod
 	}
 
 	trumpDesignator := s.DeckRepo.GetCard(client, round.Trump)
-	trumps, err := s.RoundRepo.GetTrumpsByDesignator(client, trumpDesignator)
+	trumpPower := GetTrumpPower(trumpDesignator)
+	trumps, err := s.RoundRepo.GetTrumpsByPower(client, strconv.Itoa(trumpPower))
 	if err != nil {
 		return nil, errors.New("error getting trumps")
 	}

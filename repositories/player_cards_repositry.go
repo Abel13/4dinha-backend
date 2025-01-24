@@ -98,7 +98,7 @@ func (r *PlayerCardsRepository) GetPlayerCardByID(client *supabase.Client, playe
 
 func (r *PlayerCardsRepository) Play(client *supabase.Client, playerCardID string) error {
 	playedCard := models.PlayerCardsUpdate{
-		Status: models.StatusPlayed,
+		Status: models.StatusOnTable,
 	}
 
 	_, _, err := client.

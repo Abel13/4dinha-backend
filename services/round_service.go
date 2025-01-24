@@ -77,13 +77,14 @@ func (s *RoundService) FinishRound(client *supabase.Client, matchID string, play
 	round, _ := s.RoundRepo.CurrentRound(client, stringRoundNumber, matchID)
 	playerCards, _ := s.PlayerCardsRepo.GetPlayerCards(matchID, playerID, match.RoundNumber)
 	trumpIndicator := s.DeckRepo.GetCard(client, round.Trump)
+	trumpPower := GetTrumpPower(trumpIndicator)
 	deck := s.DeckRepo.GetAllCards(client)
 
 	gameBets, _ := s.BetRepo.GetRoundBets(client, matchID, stringRoundNumber)
 
-	results := GetResult(utils.CalculateGroup(match.RoundNumber), playerCards, (trumpIndicator.Power%13)+1, deck, matchUsers, gameBets)
-	if len(results) > 0 {
-		for _, result := range results {
+	results := GetResult(utils.CalculateGroup(match.RoundNumber), playerCards, trumpPower, deck, matchUsers, gameBets)
+	if len(results.PlayersResult) > 0 {
+		for _, result := range results.PlayersResult {
 			lostLife := int(math.Abs(float64(result.Bets - result.Wins)))
 			if lostLife == 0 {
 				continue
