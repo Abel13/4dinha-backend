@@ -181,7 +181,7 @@ func FindNextAlivePlayer(matchUsers []models.MatchUsers, lastPlayerID string) (m
 }
 
 func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string) (GameUpdate, error) {
-	var gamePlayers []models.GamePlayer
+	var gamePlayers = make([]models.GamePlayer, 0)
 	var gameUpdate GameUpdate
 	var currentPlayerID string
 	var results models.RoundResult

@@ -99,18 +99,18 @@ func (s *RoundService) FinishRound(client *supabase.Client, matchID string, play
 		}
 	}
 
+	// Update match round_number
+	err := s.MatchRepo.UpdateRoundNumber(matchID, match.RoundNumber+1)
+	if err != nil {
+		return err
+	}
+
 	// getAlivePlayers
 	matchUsers, _ = s.MatchUsersRepo.GetAlivePlayers(client, matchID)
 
 	// choose next Dealer
 	nextUser := GetNextMatchUser(matchUsers, *user.TableSeat)
-	err := s.MatchUsersRepo.UpdateDealer(matchID, *nextUser.TableSeat)
-	if err != nil {
-		return err
-	}
-
-	// Update match round_number
-	err = s.MatchRepo.UpdateRoundNumber(matchID, match.RoundNumber+1)
+	err = s.MatchUsersRepo.UpdateDealer(matchID, *nextUser.TableSeat)
 	if err != nil {
 		return err
 	}

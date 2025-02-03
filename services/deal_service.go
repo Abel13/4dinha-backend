@@ -37,6 +37,8 @@ func NewDealService(
 }
 
 func (s *DealService) DealCards(client *supabase.Client, userID, matchID string) error {
+	var cardsQuantity int
+
 	isDealer, err := s.MatchUserRepo.IsDealer(client, matchID, userID)
 	if err != nil || !isDealer {
 		return errors.New("user is not the dealer")
@@ -66,7 +68,7 @@ func (s *DealService) DealCards(client *supabase.Client, userID, matchID string)
 
 	shuffledCards := utils.Shuffle(gameDeck)
 
-	cardsQuantity := utils.CalculateGroup(roundNumber)
+	cardsQuantity = utils.CalculateGroup(roundNumber)
 
 	playerCards := utils.DistributeCards(players, roundNumber, &shuffledCards, cardsQuantity)
 
