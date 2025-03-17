@@ -57,7 +57,7 @@ func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID 
 		Eq("match_id", matchID).
 		Gt("lives", "0").
 		Order("table_seat", &postgrest.OrderOpts{
-			Ascending: false,
+			Ascending: true,
 		}).
 		ExecuteTo(&alivePlayers)
 
