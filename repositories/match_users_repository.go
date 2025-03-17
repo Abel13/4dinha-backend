@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/supabase-community/supabase-go"
 	"io"
 	"net/http"
+
+	"github.com/supabase-community/postgrest-go"
+	"github.com/supabase-community/supabase-go"
 )
 
 type MatchUsersRepository struct {
@@ -49,7 +51,15 @@ func (r *MatchUsersRepository) IsDealer(client *supabase.Client, matchID string,
 func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID string) ([]models.MatchUsers, error) {
 	var alivePlayers []models.MatchUsers
 
-	_, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).Gt("lives", "0").ExecuteTo(&alivePlayers)
+	_, err := client.
+		From("match_users").
+		Select("*", "", false).
+		Eq("match_id", matchID).
+		Gt("lives", "0").
+		Order("table_seat", &postgrest.OrderOpts{
+			Ascending: false,
+		}).
+		ExecuteTo(&alivePlayers)
 
 	return alivePlayers, err
 }
@@ -57,7 +67,14 @@ func (r *MatchUsersRepository) GetAlivePlayers(client *supabase.Client, matchID 
 func (r *MatchUsersRepository) GetMatchUsers(client *supabase.Client, matchID string) ([]models.MatchUsers, error) {
 	var matchUsers []models.MatchUsers
 
-	_, err := client.From("match_users").Select("*", "", false).Eq("match_id", matchID).ExecuteTo(&matchUsers)
+	_, err := client.
+		From("match_users").
+		Select("*", "", false).
+		Eq("match_id", matchID).
+		Order("table_seat", &postgrest.OrderOpts{
+			Ascending: true,
+		}).
+		ExecuteTo(&matchUsers)
 
 	return matchUsers, err
 }
