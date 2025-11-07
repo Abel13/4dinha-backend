@@ -127,11 +127,11 @@ func GetResult(
 			}
 		}
 
-		turns = append(turns, models.GameTurn{TurnNumber: turn, WinnerCard: winningCard})
-
 		for _, playedCard := range allPlayerCards {
 			if (playedCard.Status == models.StatusPlayed || playedCard.Status == models.StatusOnTable) && playedCard.Turn == turn {
 				if playedCard.Symbol == winningCard.Symbol && playedCard.Suit == winningCard.Suit {
+					turns = append(turns, models.GameTurn{TurnNumber: turn, WinnerCard: playedCard})
+
 					if result, exists := playersResults[playedCard.UserID]; exists {
 						lastWinnerID = playedCard.UserID
 						result.Wins++
