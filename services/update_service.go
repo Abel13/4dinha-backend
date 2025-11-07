@@ -26,6 +26,7 @@ type GameUpdate struct {
 	Players     []models.GamePlayer           `json:"players"`
 	PlayerCards []models.GetPlayerCardsResult `json:"player_cards"`
 	Round       models.GameRound              `json:"round"`
+	Turns       []models.GameTurn             `json:"turns"`
 	Bets        []models.Bets                 `json:"bets"`
 	Results     []models.PlayerResult         `json:"results"`
 }
@@ -70,6 +71,7 @@ func GetResult(
 
 	playersResults := make(map[string]*models.PlayerResult)
 	lastWinnerID := ""
+	turns := make([]models.GameTurn, 0, maxTurns)
 
 	for _, player := range players {
 		playersResults[player.UserID] = &models.PlayerResult{
@@ -125,6 +127,8 @@ func GetResult(
 			}
 		}
 
+		turns = append(turns, models.GameTurn{TurnNumber: turn, WinnerCard: winningCard})
+
 		for _, playedCard := range allPlayerCards {
 			if (playedCard.Status == models.StatusPlayed || playedCard.Status == models.StatusOnTable) && playedCard.Turn == turn {
 				if playedCard.Symbol == winningCard.Symbol && playedCard.Suit == winningCard.Suit {
@@ -146,6 +150,7 @@ func GetResult(
 	return models.RoundResult{
 		PlayersResult: results,
 		LastWinnerID:  lastWinnerID,
+		Turns:         turns,
 	}
 }
 
@@ -261,6 +266,7 @@ func (s *UpdateService) Update(client *supabase.Client, matchID, playerID string
 	gameUpdate.PlayerCards = playerCards
 	gameUpdate.Bets = gameBets
 	gameUpdate.Results = results.PlayersResult
+	gameUpdate.Turns = results.Turns
 
 	return gameUpdate, nil
 }

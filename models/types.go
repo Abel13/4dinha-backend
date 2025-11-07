@@ -153,24 +153,6 @@ const (
 	StatusFinished RoundStatus = "finished"
 )
 
-// Stored Procedures and Functions
-type GetUserEmailArgs struct {
-	UserID string `json:"user_id"`
-}
-
-type GetUserEmailResult struct {
-	Email string `json:"email"`
-}
-
-type UpdateMatchStatusToStartedArgs struct {
-	MatchID string `json:"_match_id"`
-}
-
-type UpdateReadyStatusArgs struct {
-	MatchID string `json:"_match_id"`
-	IsReady bool   `json:"_is_ready"`
-}
-
 type UpdateDealerArgs struct {
 	MatchID   string `json:"_match_id"`
 	TableSeat int    `json:"_table_seat"`
@@ -180,9 +162,6 @@ type UpdatePlayerLivesArgs struct {
 	MatchID  string `json:"_match_id"`
 	UserID   string `json:"_user_id"`
 	NewLives int    `json:"_new_lives"`
-}
-
-type UpdatePlayerLivesResult struct {
 }
 
 type UpdateRoundNumberArgs struct {

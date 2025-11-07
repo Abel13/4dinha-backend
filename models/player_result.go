@@ -10,4 +10,5 @@ type PlayerResult struct {
 type RoundResult struct {
 	PlayersResult []PlayerResult
 	LastWinnerID  string
+	Turns         []GameTurn
 }
