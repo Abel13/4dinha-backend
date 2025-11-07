@@ -3,6 +3,7 @@ package repositories
 import (
 	"4dinha-backend/models"
 	"fmt"
+
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -63,7 +64,7 @@ func (r *RoundRepository) GetTrumpsByPower(client *supabase.Client, trumpPower s
 
 	_, err := client.
 		From("deck").
-		Select("*", "", false).
+		Select("suit, symbol", "", false).
 		Eq("power", trumpPower).
 		ExecuteTo(&trumps)
 
